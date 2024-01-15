@@ -123,6 +123,13 @@ void APlayerPawn::UpdateMoney(int money)
 	}
 }
 
+void APlayerPawn::UpdateScore(int score)
+{
+	if (IsValid(UIWidget)) {
+		//UIWidget->UpdateMoney(money);
+	}
+}
+
 void APlayerPawn::ServerSetLocation_Implementation(FVector NewLocation)
 {
 	SetActorLocation(NewLocation, true);

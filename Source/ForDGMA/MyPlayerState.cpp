@@ -38,6 +38,20 @@ void AMyPlayerState::AddMoney(int addmoney)
     }
 }
 
+void AMyPlayerState::OnRep_Score()
+{
+    Super::OnRep_Score();
+
+    if (IsValid(playerPawn)) {
+        playerPawn->UpdateScore(Score);
+    }
+}
+
+void AMyPlayerState::AddPoints(int points)
+{
+    Score += points;
+}
+
 void AMyPlayerState::BeginPlay()
 {
     Super::BeginPlay();

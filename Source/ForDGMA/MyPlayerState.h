@@ -28,6 +28,11 @@ public:
 	UFUNCTION()
 	void AddMoney(int addmoney);
 
+    void OnRep_Score() override;
+
+    UFUNCTION()
+    void AddPoints(int points);
+
 protected:
     virtual void BeginPlay() override;
 };

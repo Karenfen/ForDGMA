@@ -60,6 +60,9 @@ public:
 	UFUNCTION()
 	void UpdateMoney(int money);
 
+	UFUNCTION()
+	void UpdateScore(int score);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -4,9 +4,7 @@
 #include "GameFramework/GameState.h"
 #include "MyGameState.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class FORDGMA_API AMyGameState : public AGameState
 {
@@ -26,6 +24,8 @@ protected:
 
 public:
 	virtual void BeginPlay() override;
+	UFUNCTION()
+	void PlayerEarnedPoints(APlayerState* player, int points);
 
 protected:
 	UFUNCTION()
