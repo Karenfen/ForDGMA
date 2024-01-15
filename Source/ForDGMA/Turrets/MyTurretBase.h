@@ -70,6 +70,8 @@ protected:
 	FTimerHandle ReloadTimerHandle;
 	FTimerHandle LaserLifeTimerHandle;
 	FTimerHandle DestroyTimerHandle;
+	UPROPERTY(Replicated)
+	class APlayerState* playerOwnerState{ nullptr };
 
 public:
 	AMyTurretBase();
@@ -87,6 +89,8 @@ public:
 	bool IsReadyToFire() const;
 	UFUNCTION()
 	void OnRep_Health();
+	UFUNCTION(Server, Reliable)
+	void SetPlayerOwner(class APlayerState* player);
 
 protected:
 	virtual void BeginPlay() override;

@@ -29,6 +29,9 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	class USphereComponent* CursorCollider;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UBuildingComponent* BuildComponent;
+
 	// Cursor widget compponent
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<class UPlayerUIWidget> UIWidgetClass;
@@ -40,22 +43,20 @@ protected:
 	float CursorCollisionRadius = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cursor")
-	float CursorWidgetSize = 50.0f;
-
+	float MaxCursorDistance = 10000.0f;
 
 	class UPlayerUIWidget* UIWidget{ nullptr };
+	bool IsBuildingAvalible = true;
 
 public:
-	// Sets default values for this pawn's properties
 	APlayerPawn();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void SetCursorLocation(const FVector& mousePosition);
+	void SetCursorLocation(const FVector& mousePosition, const FVector& mouseDirection);
 
 	UFUNCTION()
 	void UpdateMoney(int money);
@@ -63,15 +64,24 @@ public:
 	UFUNCTION()
 	void UpdateScore(int score);
 
+	void FirstAction();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void Move(float DeltaTime);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void SpawnTurret();
+
 	UFUNCTION(Server, Unreliable)
 	void ServerSetLocation(FVector NewLocation);
+	
+	UFUNCTION(Server, Reliable)
+	void SetBuildingAvalible(bool isAvalible);
 
-	void CheckGround();
+	UFUNCTION(Server, Unreliable)
+	void SetCursorLocationOnServer(const FVector& newPosition);
 
 };

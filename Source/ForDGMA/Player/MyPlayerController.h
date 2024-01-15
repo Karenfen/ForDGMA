@@ -26,4 +26,5 @@ protected:
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	void MousePositionUpdate();
+	void ClickLeft();
 };

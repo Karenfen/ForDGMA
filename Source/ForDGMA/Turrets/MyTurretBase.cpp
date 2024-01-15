@@ -7,6 +7,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include <Kismet/KismetMathLibrary.h>
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/PlayerState.h"
 
 
 AMyTurretBase::AMyTurretBase()
@@ -192,7 +193,7 @@ void AMyTurretBase::TakeDamage_Implementation(int damage, APlayerState* instigat
 			AMyGameState* gameState = Cast<AMyGameState>(GetWorld()->GetGameState());
 
 			if (IsValid(gameState)) {
-				gameState->PlayerEarnedPoints(nullptr, Points);
+				gameState->PlayerEarnedPoints(playerOwnerState, Points);
 			}
 
 			Die();
@@ -205,4 +206,9 @@ void AMyTurretBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AMyTurretBase, Health, COND_OwnerOnly);
+}
+
+void AMyTurretBase::SetPlayerOwner_Implementation(APlayerState* playerState) 
+{
+	playerOwnerState = playerState;
 }

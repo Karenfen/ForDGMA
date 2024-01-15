@@ -1,19 +1,19 @@
 #include "PlayerPawn.h"
 #include "PlayerUIWidget.h"
 #include "../MyPlayerState.h"
+#include "../Components/BuildingComponent.h"
 
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
 #include "Net/UnrealNetwork.h"
 #include <Kismet/KismetMathLibrary.h>
 #include "Components/SphereComponent.h"
+#include <ForDGMA/Turrets/MyTurretBase.h>
 
 
 
-// Sets default values
 APlayerPawn::APlayerPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
@@ -31,9 +31,10 @@ APlayerPawn::APlayerPawn()
 
 	CursorCollider = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor Collision"));
 	CursorCollider->SetupAttachment(RootComponent);
+
+	BuildComponent = CreateDefaultSubobject<UBuildingComponent>(TEXT("Building component"));
 }
 
-// Called when the game starts or when spawned
 void APlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
@@ -58,7 +59,6 @@ void APlayerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	Move(DeltaTime);
-	CheckGround();
 }
 
 // Called to bind functionality to input
@@ -68,10 +68,36 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
-void APlayerPawn::SetCursorLocation(const FVector& mousePosition)
+void APlayerPawn::SetCursorLocation(const FVector& mousePosition, const FVector& mouseDirection)
 {
 	if (IsValid(CursorCollider)) {
-		CursorCollider->SetWorldLocation(mousePosition);
+		FVector newCursorLocation = CursorCollider->GetComponentLocation();
+		FHitResult hitResult;
+		FCollisionQueryParams traceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
+		traceParams.bTraceComplex = true;
+		traceParams.bReturnPhysicalMaterial = true;
+		traceParams.AddIgnoredActor(this);
+
+		FVector end = mousePosition + (mouseDirection * MaxCursorDistance);
+
+		if (GetWorld()->LineTraceSingleByChannel(hitResult, mousePosition, end, ECollisionChannel::ECC_Visibility, traceParams))
+		{
+			UPhysicalMaterial* HitPhysMaterial = hitResult.PhysMaterial.Get();
+
+			if (HitPhysMaterial && HitPhysMaterial->GetName() == "ConstructibleGroundMaterial") {
+				SetBuildingAvalible(true);
+				IsBuildingAvalible = true;
+			}
+			else {
+				SetBuildingAvalible(false);
+				IsBuildingAvalible = false;
+			}
+
+			newCursorLocation = hitResult.ImpactPoint;
+		}
+
+		CursorCollider->SetWorldLocation(newCursorLocation);
+		SetCursorLocationOnServer(newCursorLocation);
 	}
 }
 
@@ -90,30 +116,30 @@ void APlayerPawn::Move(float DeltaTime)
 	}
 }
 
-void APlayerPawn::CheckGround()
+void APlayerPawn::SetCursorLocationOnServer_Implementation(const FVector& newPosition)
 {
 	if (IsValid(CursorCollider)) {
-		FHitResult hitResult;
-		FCollisionQueryParams traceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
-		traceParams.bTraceComplex = true;
-		traceParams.bReturnPhysicalMaterial = true;
-		traceParams.AddIgnoredActor(this);
-
-		FVector start = CursorCollider->GetComponentLocation();
-		FVector end = start - (CursorCollider->GetUpVector() * 500.0f);
-
-		if (GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECollisionChannel::ECC_Visibility, traceParams))
-		{
-			UPhysicalMaterial* HitPhysMaterial = hitResult.PhysMaterial.Get();
-
-			if (HitPhysMaterial && HitPhysMaterial->GetName() == "ConstructibleGroundMaterial") {
-				//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, TEXT("ConstructibleGroundMaterial"));
-			}
-			else {
-				//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Nothing"));
-			}
-		}
+		CursorCollider->SetWorldLocation(newPosition);
 	}
+}
+
+void APlayerPawn::SetBuildingAvalible_Implementation(bool isAvalible)
+{
+	IsBuildingAvalible = isAvalible;
+}
+
+void APlayerPawn::SpawnTurret_Implementation()
+{
+	AMyTurretBase* newTurret = BuildComponent->BuildTurret(CursorCollider->GetComponentLocation(), CursorCollider->GetComponentRotation());
+
+	if (IsValid(newTurret)) {
+		newTurret->SetPlayerOwner(GetPlayerState<APlayerState>());
+	}
+}
+
+bool APlayerPawn::SpawnTurret_Validate()
+{
+	return (IsValid(BuildComponent) && IsValid(CursorCollider));
 }
 
 void APlayerPawn::UpdateMoney(int money)
@@ -127,6 +153,13 @@ void APlayerPawn::UpdateScore(int score)
 {
 	if (IsValid(UIWidget)) {
 		//UIWidget->UpdateMoney(money);
+	}
+}
+
+void APlayerPawn::FirstAction()
+{
+	if (IsBuildingAvalible) {
+		SpawnTurret();
 	}
 }
 

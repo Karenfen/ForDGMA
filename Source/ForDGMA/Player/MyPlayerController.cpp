@@ -24,6 +24,7 @@ void AMyPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	InputComponent->BindAxis("MoveForward", this, &AMyPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AMyPlayerController::MoveRight);
+	InputComponent->BindAction("ClickLeft", EInputEvent::IE_Pressed, this, &AMyPlayerController::ClickLeft);
 }
 
 void AMyPlayerController::MoveForward(float AxisValue)
@@ -45,17 +46,18 @@ void AMyPlayerController::MousePositionUpdate()
 	if(IsValid(PlayerPawn)) {
 		FVector mouseDirection;
 		FVector mousePosition;
-		FVector playerPosition = PlayerPawn->GetActorLocation();
 
 		DeprojectMousePositionToWorld(mousePosition, mouseDirection);
 
-		float distance = FVector::Distance(mousePosition, playerPosition);
-		distance /= UKismetMathLibrary::Cos(acosf(FVector::DotProduct(mouseDirection, playerPosition.DownVector)));
-
-		mousePosition = mousePosition + (mouseDirection * distance);
-
-		PlayerPawn->SetCursorLocation(mousePosition);
+		PlayerPawn->SetCursorLocation(mousePosition, mouseDirection);
 	}
 
 
+}
+
+void AMyPlayerController::ClickLeft()
+{
+	if (IsValid(PlayerPawn)) {
+		PlayerPawn->FirstAction();
+	}
 }
