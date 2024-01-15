@@ -67,6 +67,10 @@ void ATurretAIController::OnTargetPerceptionUpdated_Implementation(AActor* actor
 
 void ATurretAIController::Attack_Implementation()
 {
+	if (Turret == nullptr) {
+		Turret = Cast<AMyTurretBase>(GetPawn());
+	}
+
 	if (IsValid(Turret) && IsValid(CurrentEnemyActor)) {
 		FVector targetLocation = CurrentEnemyActor->GetActorLocation();
 

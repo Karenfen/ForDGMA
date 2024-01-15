@@ -9,7 +9,12 @@ UBuildingComponent::UBuildingComponent()
 AMyTurretBase* UBuildingComponent::BuildTurret(const FVector& location, const FRotator& rotation)
 {
 	if (!TurretClass.IsEmpty()) {
-		AMyTurretBase* newTurret = GetWorld()->SpawnActor<AMyTurretBase>(TurretClass.Pop(), location, rotation);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = GetOwner()->GetInstigator();
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AMyTurretBase* newTurret = GetWorld()->SpawnActor<AMyTurretBase>(TurretClass.Pop(), location, rotation, SpawnParams);
 
 		if (newTurret) {
 			return newTurret;
