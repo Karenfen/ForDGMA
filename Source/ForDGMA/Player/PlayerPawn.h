@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "GenericTeamAgentInterface.h"
 #include "PlayerPawn.generated.h"
 
 
@@ -11,7 +12,6 @@ class FORDGMA_API APlayerPawn : public APawn
 	GENERATED_BODY()
 
 public:
-
 	float _targetForwardAxisValue = 0.0f;
 	float _targetRightdAxisValue = 0.0f;
 
@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cursor")
 	float MaxCursorDistance = 10000.0f;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Team")
+	FGenericTeamId TeamId;
+
 	class UPlayerUIWidget* UIWidget{ nullptr };
 	bool IsBuildingAvalible = true;
 
@@ -66,6 +69,10 @@ public:
 
 	void FirstAction();
 
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
+	void SetGenericTeamId(const FGenericTeamId& newTeamID) { TeamId = newTeamID; };
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -83,5 +90,8 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void SetCursorLocationOnServer(const FVector& newPosition);
+
+	UFUNCTION(Server, Reliable)
+	void InitTeamIDOnServer();
 
 };

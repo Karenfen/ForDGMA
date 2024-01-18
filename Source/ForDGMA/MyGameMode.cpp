@@ -1,4 +1,5 @@
 #include "MyGameMode.h"
+#include "Player/MyPlayerController.h"
 
 //bool AMyGameMode::ReadyToStartMatch_Implementation()
 //{
@@ -9,3 +10,19 @@
 //        return false;
 //    }
 //}
+
+FGenericTeamId AMyGameMode::GenerateTeamID()
+{
+	return FGenericTeamId(TeamIDuint8++);
+}
+
+void AMyGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	AMyPlayerController* player = Cast<AMyPlayerController>(NewPlayer);
+
+	if (player) {
+		player->SetGenericTeamId(GenerateTeamID());
+	}
+}

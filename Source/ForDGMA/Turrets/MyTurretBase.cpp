@@ -1,5 +1,6 @@
 #include "MyTurretBase.h"
 #include "../MyGameState.h"
+#include "TurretAIController.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
@@ -8,6 +9,9 @@
 #include <Kismet/KismetMathLibrary.h>
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
+#include <Perception/AIPerceptionSystem.h>
+#include "Perception/AISenseConfig_Sight.h"
+
 
 
 AMyTurretBase::AMyTurretBase()
@@ -37,6 +41,16 @@ AMyTurretBase::AMyTurretBase()
 	DieVisualEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Die Effect"));
 	DieVisualEffect->SetupAttachment(BodyMesh);
 	DieVisualEffect->SetAutoActivate(false);
+}
+
+void AMyTurretBase::SetGenericTeamId(const FGenericTeamId& newTeamID)
+{
+	TeamId = newTeamID;
+
+	ATurretAIController* mycontroller = Cast<ATurretAIController>(Controller);
+	if (mycontroller) {
+		mycontroller->SetGenericTeamId(newTeamID);
+	}
 }
 
 void AMyTurretBase::BeginPlay()

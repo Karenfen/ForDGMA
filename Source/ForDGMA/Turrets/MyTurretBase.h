@@ -3,10 +3,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "../IDamageTaker.h"
+#include "GenericTeamAgentInterface.h"
 #include "MyTurretBase.generated.h"
 
 UCLASS()
-class FORDGMA_API AMyTurretBase : public APawn, public IIDamageTaker
+class FORDGMA_API AMyTurretBase : public APawn, public IIDamageTaker, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -65,6 +66,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Basic")
 	float TimeToDestroy = 2.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Team")
+	FGenericTeamId TeamId = FGenericTeamId::NoTeam;
+
 	bool ReadyToFire = true;
 	FVector LaserScale;
 	FTimerHandle ReloadTimerHandle;
@@ -91,6 +95,8 @@ public:
 	void OnRep_Health();
 	UFUNCTION(Server, Reliable)
 	void SetPlayerOwner(class APlayerState* player);
+	virtual void SetGenericTeamId(const FGenericTeamId& newTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; };
 
 protected:
 	virtual void BeginPlay() override;

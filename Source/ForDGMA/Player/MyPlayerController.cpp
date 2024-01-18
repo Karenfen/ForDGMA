@@ -1,6 +1,6 @@
 #include "MyPlayerController.h"
+#include "PlayerPawn.h"
 
-#include"PlayerPawn.h"
 #include <Kismet/KismetMathLibrary.h>
 
 
@@ -25,6 +25,15 @@ void AMyPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveForward", this, &AMyPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AMyPlayerController::MoveRight);
 	InputComponent->BindAction("ClickLeft", EInputEvent::IE_Pressed, this, &AMyPlayerController::ClickLeft);
+}
+
+void AMyPlayerController::SetGenericTeamId(const FGenericTeamId& newTeamID)
+{
+	TeamId = newTeamID;
+
+	//if (PlayerPawn) {
+	//	PlayerPawn->SetGenericTeamId(TeamId);
+	//}
 }
 
 void AMyPlayerController::MoveForward(float AxisValue)

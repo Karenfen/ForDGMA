@@ -1,7 +1,8 @@
 #include "PlayerPawn.h"
 #include "PlayerUIWidget.h"
-#include "../MyPlayerState.h"
 #include "../Components/BuildingComponent.h"
+#include "../MyGameMode.h"
+#include "../MyPlayerState.h"
 
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
@@ -9,13 +10,14 @@
 #include <Kismet/KismetMathLibrary.h>
 #include "Components/SphereComponent.h"
 #include <ForDGMA/Turrets/MyTurretBase.h>
+#include <ForDGMA/MyGameState.h>
 
 
 
 APlayerPawn::APlayerPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	RootComponent = Mesh;
 
@@ -52,6 +54,8 @@ void APlayerPawn::BeginPlay()
 			UIWidget->UpdateMoney(0);
 		}
 	}
+
+	InitTeamIDOnServer();
 }
 
 // Called every frame
@@ -116,6 +120,18 @@ void APlayerPawn::Move(float DeltaTime)
 	}
 }
 
+void APlayerPawn::InitTeamIDOnServer_Implementation()
+{
+	if (TeamId == FGenericTeamId::NoTeam) {
+		AMyGameMode* myGameMode = Cast<AMyGameMode>(GetWorld()->GetAuthGameMode());
+
+		if (myGameMode) {
+			TeamId = myGameMode->GenerateTeamID();
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("New teamID: %d, player: %s"), TeamId, *GetName()));
+		}
+	}
+}
+
 void APlayerPawn::SetCursorLocationOnServer_Implementation(const FVector& newPosition)
 {
 	if (IsValid(CursorCollider)) {
@@ -134,6 +150,7 @@ void APlayerPawn::SpawnTurret_Implementation()
 
 	if (IsValid(newTurret)) {
 		newTurret->SetPlayerOwner(GetPlayerState<APlayerState>());
+		newTurret->SetGenericTeamId(TeamId);
 	}
 }
 
@@ -161,6 +178,14 @@ void APlayerPawn::FirstAction()
 	if (IsBuildingAvalible) {
 		SpawnTurret();
 	}
+}
+
+void APlayerPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(APlayerPawn, TeamId, COND_OwnerOnly);
+
 }
 
 void APlayerPawn::ServerSetLocation_Implementation(FVector NewLocation)

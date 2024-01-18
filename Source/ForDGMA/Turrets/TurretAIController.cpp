@@ -47,9 +47,15 @@ void ATurretAIController::OnTargetPerceptionUpdated_Implementation(AActor* actor
 {
 	if (simulus.Type == UAISense::GetSenseID(UAISense_Sight::StaticClass())) {
 		if (simulus.WasSuccessfullySensed()) {
-			isAttack = true;
-			EnemyActors.AddUnique(actor);
-			CurrentEnemyActor = actor;
+			AMyTurretBase* otherTurret = Cast<AMyTurretBase>(actor);
+
+			if (otherTurret) {
+				if (GetGenericTeamId() != otherTurret->GetGenericTeamId()) {
+					isAttack = true;
+					EnemyActors.AddUnique(actor);
+					CurrentEnemyActor = actor;
+				}
+			}
 		}
 		else {
 			EnemyActors.RemoveSingle(actor);
