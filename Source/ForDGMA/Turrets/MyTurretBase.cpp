@@ -2,6 +2,7 @@
 #include "../MyGameState.h"
 #include "TurretAIController.h"
 
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
 #include <Components/AudioComponent.h>
@@ -20,6 +21,9 @@ AMyTurretBase::AMyTurretBase()
 
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 	RootComponent = BodyMesh;
+
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision Box"));
+	CollisionBox->AttachToComponent(BodyMesh, FAttachmentTransformRules::KeepRelativeTransform);
 
 	GunMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Gun"));
 	GunMesh->AttachToComponent(BodyMesh, FAttachmentTransformRules::KeepRelativeTransform);
